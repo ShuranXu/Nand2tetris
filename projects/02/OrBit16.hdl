@@ -1,0 +1,32 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Xor.hdl
+
+
+CHIP OrBit16 {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    // Put your code here:
+    Or(a=in[0],b=in[1],out=c1);
+    Or(a=in[2],b=in[3],out=c2);
+    Or(a=in[4],b=in[5],out=c3);
+    Or(a=in[6],b=in[7],out=c4);
+    Or(a=in[8],b=in[9],out=c5);
+    Or(a=in[10],b=in[11],out=c6);
+    Or(a=in[12],b=in[13],out=c7);
+    Or(a=in[14],b=in[15],out=c8);
+
+    Or(a=c1, b=c2, out=tmp1);
+    Or(a=c3, b=c4, out=tmp2);
+    Or(a=c5, b=c6, out=tmp3);
+    Or(a=c7, b=c8, out=tmp4);
+
+    Or(a=tmp1, b=tmp2, out=outTmp1);
+    Or(a=tmp3, b=tmp4, out=outTmp2);
+
+    Or(a=outTmp1, b=outTmp2, out=out);
+   
+}

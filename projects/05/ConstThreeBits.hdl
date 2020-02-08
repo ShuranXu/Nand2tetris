@@ -1,0 +1,11 @@
+
+CHIP ConstThreeBits {
+    IN a, b, c;
+    OUT out[3];
+
+    PARTS:
+    // Put your code here:
+    Or(a=a, b=false, out=out[2]);
+    Or(a=b, b=false, out=out[1]);
+    Or(a=c, b=false, out=out[0]);
+}

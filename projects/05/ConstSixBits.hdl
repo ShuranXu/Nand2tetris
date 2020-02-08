@@ -1,0 +1,14 @@
+
+CHIP ConstSixBits {
+    IN a, b, c, d, e, f;
+    OUT out[6];
+
+    PARTS:
+    // Put your code here:
+    Or(a=a, b=false, out=out[5]);
+    Or(a=b, b=false, out=out[4]);
+    Or(a=c, b=false, out=out[3]);
+    Or(a=d, b=false, out=out[2]);
+    Or(a=e, b=false, out=out[1]);
+    Or(a=f, b=false, out=out[0]);
+}

@@ -1,0 +1,16 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Xor.hdl
+
+CHIP ConCat {
+    IN a,b,c;
+    OUT out[3];
+
+    PARTS:
+    // Put your code here:
+    Or(a=a, b=false, out=out[0]);
+    Or(a=b, b=false, out=out[1]);
+    Or(a=c, b=false, out=out[2]);
+   
+}

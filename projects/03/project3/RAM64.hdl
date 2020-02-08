@@ -1,0 +1,44 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/RAM64.hdl
+
+/**
+ * Memory of 64 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM64 {
+    IN in[16], load, address[6];
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+
+    //use demux to select/enable the correct RAM8 module
+    DMux8Way(in=true, sel=address[3..5], a=ramOneEn, b=ramTwoEn, c=ramThreeEn, d=ramFourEn, e=ramFiveEn, f=ramSixEn, g=ramSevenEn, h=ramEightEn);
+
+    //use address[2:0] ANDed with load to select the correct RAM/Register component of a RAM8 module
+    And(a=load, b=ramOneEn, out=En1);
+    And(a=load, b=ramTwoEn, out=En2);
+    And(a=load, b=ramThreeEn, out=En3);
+    And(a=load, b=ramFourEn, out=En4);
+    And(a=load, b=ramFiveEn, out=En5);
+    And(a=load, b=ramSixEn, out=En6);
+    And(a=load, b=ramSevenEn, out=En7);
+    And(a=load, b=ramEightEn, out=En8);
+
+    RAM8(in=in, load=En1, address=address[0..2], out=out1);
+    RAM8(in=in, load=En2, address=address[0..2], out=out2);
+    RAM8(in=in, load=En3, address=address[0..2], out=out3);
+    RAM8(in=in, load=En4, address=address[0..2], out=out4);
+    RAM8(in=in, load=En5, address=address[0..2], out=out5);
+    RAM8(in=in, load=En6, address=address[0..2], out=out6);
+    RAM8(in=in, load=En7, address=address[0..2], out=out7);
+    RAM8(in=in, load=En8, address=address[0..2], out=out8);
+
+    //use mux to select theb correct RAM8 module
+    Mux8Way16(a=out1, b=out2, c=out3, d=out4, e=out5, f=out6, g=out7, h=out8, sel=address[3..5], out=out);
+}

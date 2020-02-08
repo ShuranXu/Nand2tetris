@@ -1,0 +1,131 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+      
+
+    PARTS:
+    // Put your code here:
+
+
+    //Mux for CPU inputs
+    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=AregIn); 
+
+    /* The following logic is used to output control bits to A register, D register and Memory */
+    ConstThreeBits(a=true,b=false,c=false,out=AInstCtrl);
+    Mux3(a=AInstCtrl, b=instruction[3..5], sel=instruction[15],out=regOutCtrl);
+    DMux8Way(in=true, sel=regOutCtrl, a=null, b=M, c=D, d=MD, e=A, f=AM, g=AD, h=AMD);
+
+    //contrl bit for A register
+    Or4(a=A,b=AM,c=AD,d=AMD,out=AregCtrl);
+    //contrl bit for D register
+    Or4(a=D,b=MD,c=AD,d=AMD,out=DregCtrl);
+    //contrl bit for Memory
+    Or4(a=M,b=MD,c=AM,d=AMD,out=MregCtrl);
+
+    //A register
+    ARegister(in=AregIn,load=AregCtrl,out=AregOut); //built-in chip
+    //D register
+    DRegister(in=ALUOut,load=DregCtrl,out=X);  //built-in chip
+    //set writeM
+    Or(a=MregCtrl, b=false, out=writeM);
+
+    /* The following logic is used to output a sel signal for the ALU input Mux */
+    Mux(a=false, b=instruction[12], sel=instruction[15], out=ALUMuxSel);
+
+    //Mux for ALU inputs
+    Mux16(a=AregOut,b=inM,sel=ALUMuxSel,out=Y); 
+
+    /* The following logic is used to output control signals for the ALU */
+    ConstSixBits(a=true,b=false,c=false,d=false,e=true,f=false,out=AinstALUCtrl);
+    /* Customized logic to specify each ALU control bit */
+    ALUCtrlParser(a=AinstALUCtrl,b=instruction[6..11],sel=instruction[15],zx=zxData,nx=nxData,zy=zyData,ny=nyData,f=fData,no=noData);
+
+    ALU(x=X,y=Y,zx=zxData,nx=nxData,zy=zyData,ny=nyData,f=fData,no=noData,out=ALUOut,zr=zr,ng=ng); //currently zrData and ngData are disconnected.
+
+    /* The following logic is used to output control signals for PC */
+    Not(in=instruction[0], out=instruction0Inv);
+    Not(in=instruction[1], out=instruction1Inv);
+    Not(in=instruction[2], out=instruction2Inv);
+
+    //the following is for PC load bit, here we use the status signals zr and ng to check the size of the ALU output 
+   
+    //signal for opn 1
+    Or(a=zr, b=ng, out=tmpOpn1);
+    Not(in=tmpOpn1, out=loadOpn1);
+
+    //signal for opn3
+    Not(in=ng, out=ngNot);
+    Or(a=ngNot, b=zr, out=loadOpn3);
+
+    //signal for opn5
+    Not(in=zr, out=loadOpn5);
+
+    //signal for opn6
+    Or(a=zr, b=ng, out=loadOpn6);
+
+    Mux8Way1(a=false,b=loadOpn1,c=zr,d=loadOpn3,e=ng,f=loadOpn5,g=loadOpn6,h=true,sel=instruction[0..2],out=CinstLoad);
+
+    //the following is for PC inc bit
+    Not(in=CinstLoad, out=CinsInc);
+    Mux(a=true, b=CinsInc, sel=instruction[15], out=PCinc);
+
+    Mux(a=false, b=CinstLoad, sel=instruction[15], out=PCload);
+
+    PC(in=AregOut,load=PCload,inc=PCinc,reset=reset,out=pcOut);
+    DropBit16(in=pcOut,out=pc);
+    
+    //assign addressM
+    DropBit16(in=AregOut,out=addressM);
+    
+    //assign ALU output to the outputM  
+    Or16(a=ALUOut, b=false, out=outM);
+
+}
+
+
+
+
+
+
+
+
+
+
+
